@@ -1,25 +1,17 @@
 {
   "name": "secure-e-commerce-backend-with-payment-integration-and-product-management",
   "version": "1.0.0",
-  "description": "simple ecommerce backend",
-  "main": "server.js",
-  "type":"module",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/HenokAsaye/Secure-E-Commerce-Backend-with-Payment-Integration-and-Product-Management.git"
-  },
-  "author": "Henok Asaye",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/HenokAsaye/Secure-E-Commerce-Backend-with-Payment-Integration-and-Product-Management/issues"
-  },
-  "homepage": "https://github.com/HenokAsaye/Secure-E-Commerce-Backend-with-Payment-Integration-and-Product-Management#readme",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "express": "^4.21.1",
-    "express-validator": "^7.2.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.7.1"
   },
