@@ -1,7 +1,6 @@
 import Product from "../models/product.js";
 import User from "../models/user.js";
 
-// Add to Cart Function
 export const addToCart = async (req, res) => {
     const { productId, quantity } = req.body;
 
@@ -16,7 +15,7 @@ export const addToCart = async (req, res) => {
             return res.status(404).json({ message: "Product not found!" });
         }
 
-        // Check if product already exists in cart
+        
         const existingProduct = user.cart.find(item => item.product.toString() === productId.toString());
 
         if (existingProduct) {
@@ -33,7 +32,7 @@ export const addToCart = async (req, res) => {
     }
 };
 
-// Update Cart Function
+
 export const updateCart = async (req, res) => {
     const { productId, quantity } = req.body;
 
@@ -68,7 +67,7 @@ export const updateCart = async (req, res) => {
     }
 };
 
-// Get User Cart
+
 export const getUserCart = async (req, res) => {
     const { userId } = req.params;
     try {
@@ -87,7 +86,7 @@ export const getUserCart = async (req, res) => {
     }
 };
 
-// Delete User Cart
+
 export const deleteUserCart = async (req, res) => {
     const { userId } = req.params;
     try {
@@ -108,7 +107,7 @@ export const deleteUserCart = async (req, res) => {
     }
 };
 
-// Delete Specific Product from Cart
+
 export const deleteProduct = async (req, res) => {
     const { userId } = req.params;
     const { productId } = req.body;
