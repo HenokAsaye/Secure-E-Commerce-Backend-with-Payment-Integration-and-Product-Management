@@ -46,10 +46,23 @@ const userSchema = mongoose.Schema({
         type:Schema.Types.ObjectId,
         ref:'Order'
     },
+    verificationToken:{
+        type:String
+    },
+    verificationTokenExpiresAt:{
+        type:Date
+    },
     resetPasswordToken:{
         type:String
     },
-    resetPasswordExpires:{
+    isverified:{
+        type:Boolean,
+        default:false
+    },
+    lastlogin:{
+        type:Date
+    },
+    resetPasswordExpiresAt:{
         type:Date
     },
     createdAt:{

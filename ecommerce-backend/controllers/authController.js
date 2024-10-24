@@ -1,47 +1,45 @@
-import User from "../models/user.js"
-import { generatewebtoken } from "../utils/jwt.js";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
+import dotenv from "dotenv";
+import {User} from "../models/user.js";
+import {sendPasswordResetEmail,sendVerificationEmail,PasswordResetSuccessEmail,sendWelcomeEmail} from "../MailTrap/email.js";
+import {generateTokenandsetCookie} from "../utils/jwt.js";
+dotenv.config();
 
 
-export const signup = async (req,res)=>{
-    const {username,email,password,role} = req.body
-
-    try{
-        const hashedPassword = await bcrypt.hash(password,10);
+export const signup = async(req,res)=>{
+    const {username,email,role,password} = req.body
+    try {
+        if(!username || !email){
+            return res.status(400).json({message:"All fields are required!"})
+        }
+        const existingUser = await User.findOne({email})
+        if(existingUser){
+            return res.status(404).json({success:false,message:"user not found!"});
+        }
+        const hashed = await bcrypt.hash(password,10);
+        const verificationToken = Math.floor(100000 + Math.random() * 900000).toString()
         const newUser = new User({
             username:username,
             email:email,
-            password:hashedPassword,
-            role:role
+            password:hashed,
+            verificationToken:verificationToken,
+            verificationTokenExpiresAt:Date.now() + 24 * 60 * 60 * 1000
         })
-        const user = await newUser.save();
-        const token = generatewebtoken(user);
-        return res.status(201).json({message:"welcome you have signedup successfully",token:token})
-    }catch(error){
-        res.status(500).json({message:"unkown sweerver error,please try Again",error:error.stack})
+        await newUser.save()
+        await generateTokenandsetCookie(res,newUser._id);
+        await sendWelcomeEmail(newUser.email)
+        return res.status(201).json({
+            sucess:true,
+            massage:"Account created Successfully!",
+            user:{
+                ...newUser._doc,
+                password:undefined
+            }
+        })
+   
 
+    } catch (error) {
+        throw Error(" failed to create Account!",error)
     }
-}
-
-
-export const login = async(req,res)=>{
-    const {email,password,role} = req.body
-    try{
-        const findUser = await User.findOne({email:email})
-        if(!findUser){
-            return res.status(404).json({message:"user not found!"})
-        }
-        const verifyUser = await bcrypt.compare(password,User.password);
-
-        if(!verifyUser){
-            return res.status(403).json({message:"Incorrect passowrd or Email,Please Try Again!"})
-        }
-        const token = generatewebtoken(findUser);
-        if(role === 'admin'){
-            return res.status(200).json({message:"Welcome Admin!",token:token})
-        }
-        return res.status(200).json({message:" you have successfully loged in!",token:token})
-    }catch(error){
-        res.status(500).json({message:"unkown Error,Please try Again!"})
-    }
-}
+};
