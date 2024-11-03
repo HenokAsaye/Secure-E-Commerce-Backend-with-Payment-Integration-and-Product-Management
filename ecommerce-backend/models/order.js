@@ -27,6 +27,11 @@ const orderSchema = mongoose.Schema({
         streetnumber:Number,
         postalcode:Number
     },
+    orderStatus:{
+        type:String,
+        enum:["processing",'failed','delivered'],
+        default:'processing'
+    },
     paymentMethod:{
         type:String,
         enum:['stripe','paypal'],

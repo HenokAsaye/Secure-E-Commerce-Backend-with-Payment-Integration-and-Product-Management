@@ -80,5 +80,22 @@ export const userOrderhistory = async(req,res)=>{
 
 
 const updateOrderStatus = async(req,res)=>{
-    
+
+}
+
+const cancelOrder = async(req,res)=>{
+    const {userId} = req.body;
+    const {orderId} = req.params
+    try {
+        const user = await User.findById(userId)
+        const order = await Order.findById(orderId)
+        if(!user || userId.toString() !== req.user._id.toString()){
+            return res.status(400).json({sucess:false,message:"User not found or you Are not Authorized"})
+        }else if(userId.toString() !== req.user._id.toString() && user.role !== "admin"){
+            return res.status(403).json({sucess:false,message:"Forbiden to do this"})
+        }
+        
+    } catch (error) {
+        
+    }
 }
