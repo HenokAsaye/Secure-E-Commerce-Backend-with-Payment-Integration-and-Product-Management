@@ -5,9 +5,8 @@ import Order from "../models/order.js";
 dotenv.config()
 
 
-export const createPaymentSession = async(req,res)=>{
+export const createPaymentSession = async(order,items)=>{
     try{
-        const {items} = req.body;
         const lineItems = items.map((item) =>({
             price_data:{
                 currency:'usd',
@@ -27,10 +26,10 @@ export const createPaymentSession = async(req,res)=>{
             cancel_url:`${process.env.CLIENT_URL}/cancel`
         })
 
-        return res.status(200).json({sucess:true,success_url:session.url})
+        return session.url
     }catch(error){
         console.log("error when creating checkout session",error)
-        return res.status(500).json({ success: false, message: "Failed to create checkout session" });
+        throw new Error("Failed to create Payment Session")
     }
 }
 
@@ -47,11 +46,35 @@ export const savePayment = async(req,res)=>{
             status:'completed'
         });
         await payment.save()
-        await Order.findByIdAndUpdate(orederID,{status:'paid'});
+        await Order.findByIdAndUpdate(orderId,{status:'paid'});
         res.status(200).json({sucess:true,message:"Payment recorded successfully",payment});
     } catch (error) {
         console.error("Error saving Payment",error);
         res.status(500).json({sucess:false,message:"Failed to save payment"});
     }
     
+}
+
+export const handleWebhooks = async(req,res)=>{
+    const sig = req.header['stripe-signiture']
+    const payload = req.body
+    try {
+        const event = stripe.webhook.constructEvent(sig,payload,process.env.WEB_HOOK_SECRET);
+        if(event.type === 'checkout session completed'){
+            const session  = event.data.object
+            const orderId = event.metadata.orderId
+            await Order.findByIdAndUpdate(orderId,{paymentStatus:'paid'})
+            const payment = new Payment({
+                order:orderId,
+                status:'completed',
+                transactionId:session.payment_intent,
+                Amount:session.amount_total / 100
+            })
+            await payment.save()
+        }
+        return res.status(200).json({sucess:true})
+    } catch (error) {
+        console.log("Webhook error",error);
+        return res.status(500).json({sucess:false,message:"server-error"})
+    }
 }
