@@ -1,3 +1,4 @@
+import { log } from "winston";
 import Product from "../models/product.js";
 import User from "../models/user.js";
 
@@ -46,8 +47,6 @@ export const updateCart = async (req, res) => {
         if (!findProduct) {
             return res.status(404).json({ message: "Product not found in cart!" });
         }
-
-        // Update quantity logic
         if (quantity > 0) {
             findProduct.quantity += quantity;
         } else if (findProduct.quantity >= Math.abs(quantity) && quantity < 0) {
@@ -73,6 +72,7 @@ export const getUserCart = async (req, res) => {
     try {
         const findUser = await User.findById(userId);
         if (!findUser) {
+            log.info
             return res.status(404).json({ message: "User not found!" });
         }
         if (userId.toString() === req.user._id.toString()) {
@@ -103,6 +103,7 @@ export const deleteUserCart = async (req, res) => {
         }
 
     } catch (error) {
+        log.error("error to delete user cart")
         return res.status(500).json({ message: "Unknown error, please try again!", error: error.stack });
     }
 };
@@ -114,6 +115,7 @@ export const deleteProduct = async (req, res) => {
     try {
         const findUser = await User.findById(userId);
         if (!findUser) {
+            log.info(`user with id ${userId} not found`)
             return res.status(404).json({ message: "User not found!" });
         }
         if (userId.toString() === req.user._id.toString()) {
@@ -124,6 +126,7 @@ export const deleteProduct = async (req, res) => {
             return res.status(403).json({ message: "You are not authorized for this task!" });
         }
     } catch (error) {
+        log.error("failed to delete the product from the cart")
         return res.status(500).json({ message: "Unknown error, please try again!", error: error.stack });
     }
 };

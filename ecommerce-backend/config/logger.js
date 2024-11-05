@@ -6,7 +6,8 @@ dotenv.config();
 const logger = createLogger({
     level:"info",
     format:format.combine(
-        format.timestamp(),
+        format.colorize(),
+        format.timestamp({format:'YY:MM:DD HH:mm:ss'}),
         format.json(),
         format.prettyPrint()
     ),
@@ -20,11 +21,10 @@ const logger = createLogger({
 });
 
 if(process.env.NODE_ENV !== "production"){
-    logger.addnew (new transports.Console({
+    logger.add(new transports.Console({
         format:format.combine(
             format.timestamp({format:'YY:MM:DD HH:mm:ss'}),
             format.colorize(),
-            format.label('my app')
         )
     }))
 }

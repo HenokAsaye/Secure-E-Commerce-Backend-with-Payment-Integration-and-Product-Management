@@ -1,4 +1,4 @@
-import User from "../models/user.js";
+
 import { createPaymentSession } from "./paymentController.js";
 import Order from "../models/order.js";
 import User from "../models/user.js";
@@ -8,7 +8,7 @@ export const createOrder = async(req,res)=>{
 
     try {
         const {userId,items,totalAmount,shippingAddress,paymentMethod} = req.body;
-        if(userId !== req.user._id.toSring()){
+        if(userId !== req.user._id.toString()){
             return res.status(400).json({sucess:false,message:"you are not Authorized for this service"})
         }
         const order = new Order({
@@ -20,12 +20,14 @@ export const createOrder = async(req,res)=>{
             paymentMethod:paymentMethod
         });
         await order.save();
-        const sessionUrl = await createPaymentSession(order,items)
-        if(sessionUrl.toString().includes('success')){
-            return  res.status(201).json({success:true,message:"order created Successfully",order,sessionUrl})
-        }else{
-            return res.status(400).json({success:true,message:"Payment must be completed before"})
-        }
+        const sessionUrl = await createPaymentSession(order,items);
+        return res.status(200).json({
+            success:true,
+            message:"Order Created SuccessFully.Complete the Payment for confirmation",
+            sessionUrl,
+            order
+        })
+ 
     } catch (error) {
         console.log("Failed to create order");
         return res.status(500).json({success:false,message:"server-Error"})
@@ -74,12 +76,12 @@ export const userOrderhistory = async(req,res)=>{
         })
     } catch (error) {
         console.log("Error while fetched data");
-        res.satus(500).json({success:false,message:"server-Error"})
+        res.satus(500).json({success:false,message:"Server-Error"})
     }
 }
 
 
-const updateOrderStatus = async(req,res)=>{
+ export const updateOrderStatus = async(req,res)=>{
     const {userId,status} = req.body;
     const {orderId} = req.params;
     try {
@@ -120,11 +122,11 @@ export const cancelOrder = async(req,res)=>{
         }else if(userId.toString() !== req.user._id.toString() && user.role !== "admin"){
             return res.status(403).json({sucess:false,message:"Forbiden to do this"})
         }
-        order.OrderStatus = Failed;
+        order.OrderStatus = 'failed';
         order.save();
         return res.status(200).json({
             success:true,
-            message:"order is can Cancelled",
+            message:"order is Cancelled",
             order:{
                 ...order._doc,
                 user:undefined

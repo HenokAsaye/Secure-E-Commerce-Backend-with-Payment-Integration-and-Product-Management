@@ -2,6 +2,7 @@ import stripe from "../config/stripe.js"
 import dotenv from "dotenv";
 import Payment from "../models/payment.js";
 import Order from "../models/order.js";
+import logger from "../config/logger.js"
 dotenv.config()
 
 
@@ -22,8 +23,9 @@ export const createPaymentSession = async(order,items)=>{
             payment_method_types:['card','apple_pay','google_pay'],
             line_items:lineItems,
             mode:'payment',
-            success_url:`${process.env.CLIENT_URL}/success?success_id={CHECKOUT_SESSION_ID}`,
-            cancel_url:`${process.env.CLIENT_URL}/cancel`
+            success_url:`${process.env.CLIENT_URL}/success`,
+            cancel_url:`${process.env.CLIENT_URL}/cancel`,
+            metadata:{orderId:order._id}
         })
 
         return session.url
@@ -56,7 +58,7 @@ export const savePayment = async(req,res)=>{
 }
 
 export const handleWebhooks = async(req,res)=>{
-    const sig = req.header['stripe-signiture']
+    const sig = req.header['stripe-signature']
     const payload = req.body
     try {
         const event = stripe.webhook.constructEvent(sig,payload,process.env.WEB_HOOK_SECRET);
@@ -72,9 +74,10 @@ export const handleWebhooks = async(req,res)=>{
             })
             await payment.save()
         }
+        logger.info('payment process is done!')
         return res.status(200).json({sucess:true})
     } catch (error) {
-        console.log("Webhook error",error);
+        logger.error("Webhook error",error.stack);
         return res.status(500).json({sucess:false,message:"server-error"})
     }
 }
