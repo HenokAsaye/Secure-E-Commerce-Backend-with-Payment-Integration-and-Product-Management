@@ -11,15 +11,21 @@ const logger = createLogger({
         format.prettyPrint()
     ),
     transports:[
-        new transports.File({filename:"../logs/error.log",level:"error"}),
-        new transports.File({filename:"../logs/combined.log"})
+        new transports.File({filename:"/logs/error.log",level:"error"}),
+        new transports.File({filename:"/logs/combined.log"}),
+        new transports.File({filename:'/logs/custom.log',level:'warn'}),
+        new transports.File({filename:'/logs/access.log',level:'info'})
     ],
 
 });
 
 if(process.env.NODE_ENV !== "production"){
     logger.addnew (new transports.Console({
-        format:format.simple()
+        format:format.combine(
+            format.timestamp({format:'YY:MM:DD HH:mm:ss'}),
+            format.colorize(),
+            format.label('my app')
+        )
     }))
 }
 

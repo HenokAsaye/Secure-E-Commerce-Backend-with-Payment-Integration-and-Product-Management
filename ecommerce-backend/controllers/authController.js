@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import {User} from "../models/user.js";
 import {sendPasswordResetEmail,sendVerificationEmail,PasswordResetSuccessEmail,sendWelcomeEmail} from "../MailTrap/email.js";
 import {generateTokenandsetCookie} from "../utils/jwt.js";
+import {logger} from "../config/logger.js";
 dotenv.config();
 
 
@@ -11,10 +12,12 @@ export const signup = async(req,res)=>{
     const {username,email,role,password} = req.body
     try {
         if(!username || !email){
+            logger.info(" you should fill all the required requests")
             return res.status(400).json({message:"All fields are required!"})
         }
         const existingUser = await User.findOne({email})
         if(existingUser){
+            logger.info(`user with ${email} is not found!`)
             return res.status(404).json({success:false,message:"user not found!"});
         }
         const hashed = await bcrypt.hash(password,10);
@@ -30,6 +33,7 @@ export const signup = async(req,res)=>{
         await newUser.save()
         await generateTokenandsetCookie(res,newUser._id);
         await sendWelcomeEmail(newUser.email)
+        logger.info("you have sucessfully created Account,Welcome")
         return res.status(201).json({
             sucess:true,
             massage:"Account created Successfully!",
@@ -54,6 +58,7 @@ export const verifyEmail = async(req,res)=>{
         verificationTokenExpiresAt:{$gt:Date.now()}
     })
     if(!user){
+        logger.warn("please try again the code is invailid or it is expired!")
         return res.status(400).json({success: false, message: "Invalid or expired verification code" })
     }
     user.isverified = true,
@@ -61,6 +66,7 @@ export const verifyEmail = async(req,res)=>{
     user.verificationTokenExpiresAt = undefined
     await user.save()
     await sendVerificationEmail(user.email,user.username)
+    logger.info(`user with email:${email} is verfied successfully`)
     res.status(200).json({
         success: true,
         message: "Email verified successfully",
@@ -71,7 +77,7 @@ export const verifyEmail = async(req,res)=>{
     });
 
    } catch (error) {
-        console.log(error)
+        logger.error("failed to verify the email due to unkown server error",{error:error.stack})
         return res.status(500).json({success: false, message: "Server error"} )
    }
 }
@@ -99,7 +105,8 @@ export const login = async(req,res)=>{
         })
         
     } catch (error) {
-        
+        logger.error("failed to login due to unkown error",{stack:error.stack})
+        return res.status(500).json({message:"server-error"})
     }
 };
 
@@ -117,6 +124,7 @@ export const forgotPassword = async(re,res)=>{
     try {
         const user = await User.findOne({email})
         if(!user){
+            logger.info(`user not found with email${email}`)
             return res.status(404).json({sucess:true,message:"user not found!"})
         }
         const resetToken = crypto.randomBytes(20).toString('hex')
@@ -126,11 +134,12 @@ export const forgotPassword = async(re,res)=>{
 
         await user.save();
         await sendPasswordResetEmail(user.email,`${process.env.CRYPTO_URL}\resetToken\ ${resetToken}`)
-        console.log("Email sent SuccessFully!")
+        logger.info("Email sent SuccessFully!")
 
 
         
     } catch (error) {
+        logger.error("There is unknown error")
          res.status(500).json({sucess:false,message:"server-Error"})
         
     }
@@ -147,6 +156,7 @@ export const resetPasswoerd = async(req,res)=>{
             resetPasswordExpiresAt:{$gt:Date.now()}
         })
         if(!user){
+            
             return res.status(400).json({success:false,message:"invalid Token"})
         }
         const hash = bcrypt.hash(password,10)
