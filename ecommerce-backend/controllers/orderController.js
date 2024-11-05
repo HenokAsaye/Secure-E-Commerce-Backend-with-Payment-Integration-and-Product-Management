@@ -80,10 +80,36 @@ export const userOrderhistory = async(req,res)=>{
 
 
 const updateOrderStatus = async(req,res)=>{
+    const {userId,status} = req.body;
+    const {orderId} = req.params;
+    try {
+        const user = await User.findById(userId)
+        if(!user || user.role !=='admin'){
+            return res.status(400).json({success:false,message:"you are not allowed for this Task"})
+        }
+        const order =  await Order.findById(orderId);
+        if(!order){
+            return res.status(404).json({success:false,messsgae:"order not found"})
+        }
+        order.orderStatus = status;
+        await order.save()
+        return res.status(200).json({
+            success:true,
+            message:"Status updated sucessFully",
+            order:{
+                ...order._doc,
+                user:undefined
+            }
+        })
+
+    } catch (error) {
+        console.log("Failed to update the status!")
+        res.status(500).json({success:false,message:"server-Error"})
+    }
 
 }
 
-const cancelOrder = async(req,res)=>{
+export const cancelOrder = async(req,res)=>{
     const {userId} = req.body;
     const {orderId} = req.params
     try {
@@ -94,8 +120,19 @@ const cancelOrder = async(req,res)=>{
         }else if(userId.toString() !== req.user._id.toString() && user.role !== "admin"){
             return res.status(403).json({sucess:false,message:"Forbiden to do this"})
         }
+        order.OrderStatus = Failed;
+        order.save();
+        return res.status(200).json({
+            success:true,
+            message:"order is can Cancelled",
+            order:{
+                ...order._doc,
+                user:undefined
+            }
+        })
         
     } catch (error) {
-        
+        console.log("Failed to Cancel the order!")
+        res.status(500).json({success:false,message:"server-Error"})
     }
 }
