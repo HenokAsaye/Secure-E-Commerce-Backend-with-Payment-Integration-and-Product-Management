@@ -17,7 +17,7 @@ export const addToCart = async (req, res) => {
         }
 
         
-        const existingProduct = user.cart.find(item => item.product.toString() === productId.toString());
+        const existingProduct = user.cart.find((item) => item.product.toString() === productId.toString());
 
         if (existingProduct) {
             existingProduct.quantity += quantity;
@@ -72,7 +72,7 @@ export const getUserCart = async (req, res) => {
     try {
         const findUser = await User.findById(userId);
         if (!findUser) {
-            log.info
+            log.info("here is the detail od your cart")
             return res.status(404).json({ message: "User not found!" });
         }
         if (userId.toString() === req.user._id.toString()) {
