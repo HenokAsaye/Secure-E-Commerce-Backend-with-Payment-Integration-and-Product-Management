@@ -1,5 +1,5 @@
 import {Router} from "express";
-import {createProduct,getProduct,editProduct,deleteProduct} from "../controllers/paymentController.js";
+import {createProduct,getProduct,editProduct,deleteProduct} from "../controllers/productController.js";
 import { authenticateToken,authorizeRoles } from "../middlewares/authMiddleware.js";
 const router = Router();
 

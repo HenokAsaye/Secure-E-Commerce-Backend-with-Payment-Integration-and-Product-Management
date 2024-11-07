@@ -1,5 +1,5 @@
-import { addToCart,updateCart,deleteProduct,deleteUserCart,getUserCart } from "../controllers/cartController";
-import { authenticateToken,authorizeRoles } from "../middlewares/authMiddleware";
+import { addToCart,updateCart,deleteProduct,deleteUserCart,getUserCart } from "../controllers/cartController.js";
+import { authenticateToken,authorizeRoles } from "../middlewares/authMiddleware.js";
 import {Router} from "express";
 const router = Router();
 

@@ -1,9 +1,10 @@
-import {createLogger , format , log, transports} from "winston";
+import {createLogger , format ,  transports} from "winston";
+import path from "path";
 import dotenv from"dotenv";
 dotenv.config();
 
 
-const logger = createLogger({
+ export const logger = createLogger({
     level:"info",
     format:format.combine(
         format.colorize(),
@@ -12,10 +13,10 @@ const logger = createLogger({
         format.prettyPrint()
     ),
     transports:[
-        new transports.File({filename:"/logs/error.log",level:"error"}),
-        new transports.File({filename:"/logs/combined.log"}),
-        new transports.File({filename:'/logs/custom.log',level:'warn'}),
-        new transports.File({filename:'/logs/access.log',level:'info'})
+        new transports.File({filename:path.resolve("/logs/error.log"),level:"error"}),
+        new transports.File({filename:path.resolve("/logs/combined.log")}),
+        new transports.File({filename:path.resolve('/logs/custom.log'),level:'warn'}),
+        new transports.File({filename:path.resolve('/logs/access.log'),level:'info'})
     ],
 
 });
@@ -29,4 +30,3 @@ if(process.env.NODE_ENV !== "production"){
     }))
 }
 
-module.exports = logger;

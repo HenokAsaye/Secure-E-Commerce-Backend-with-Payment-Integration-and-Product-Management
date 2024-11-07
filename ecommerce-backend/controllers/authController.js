@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import dotenv from "dotenv";
-import {User} from "../models/user.js";
+import User from "../models/user.js";
 import {sendPasswordResetEmail,sendVerificationEmail,PasswordResetSuccessEmail,sendWelcomeEmail} from "../MailTrap/email.js";
 import {generateTokenandsetCookie} from "../utils/jwt.js";
 import {logger} from "../config/logger.js";
@@ -147,7 +147,7 @@ export const forgotPassword = async(req,res)=>{
 };
 
 
-export const resetPasswoerd = async(req,res)=>{
+export const resetPassword = async(req,res)=>{
     const {code} = req.body;
     const {password} = req.body
     try {

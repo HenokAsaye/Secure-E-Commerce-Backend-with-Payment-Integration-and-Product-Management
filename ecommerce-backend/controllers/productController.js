@@ -1,6 +1,6 @@
-import { Product } from "../models/product.js";
-import logger from "../config/logger.js";
-import { User } from "../models/user.js";
+import Product from "../models/product.js";
+import {logger} from "../config/logger.js";
+import User from "../models/user.js";
 
 export const createProduct = async (req, res) => {
     const { name, stock, description, price } = req.body;

@@ -1,6 +1,7 @@
+import express from "express";
 import {Router} from "express";
-import { createPaymentSession,savePayment,handleWebhooks } from "../controllers/paymentController";
-import { authenticateToken } from "../middlewares/authMiddleware";
+import { createPaymentSession,savePayment,handleWebhooks } from "../controllers/paymentController.js";
+import { authenticateToken } from "../middlewares/authMiddleware.js";
 const router = Router();
 
 router.post("/create-session",authenticateToken,async(req,res)=>{

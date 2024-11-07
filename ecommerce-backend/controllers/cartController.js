@@ -1,4 +1,4 @@
-import { log } from "winston";
+import {logger} from "../config/logger.js";
 import Product from "../models/product.js";
 import User from "../models/user.js";
 

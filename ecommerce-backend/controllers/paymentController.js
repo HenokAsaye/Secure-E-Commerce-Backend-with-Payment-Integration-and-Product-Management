@@ -1,8 +1,8 @@
-import stripe from "../config/stripe.js"
+import {stripe} from "../config/stripe.js"
 import dotenv from "dotenv";
 import Payment from "../models/payment.js";
 import Order from "../models/order.js";
-import logger from "../config/logger.js"
+import {logger} from "../config/logger.js"
 dotenv.config()
 
 
