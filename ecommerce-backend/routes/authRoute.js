@@ -1,26 +1,16 @@
-import {signup,login,resetPassword,forgotPassword,verifyEmail,logOut} from "../controllers/authController.js";
-import {Router} from "express";
-import passport from "passport";
-import { generateTokenandsetCookie } from "../utils/jwt.js";
-const router = Router();
-router.get("/google",
-    passport.authenticate("google",{scope:["profile","email"]})
-)
+import { Router } from "express";
+import { signup } from "../controllers/authController.js";
+import { verifyEmail } from "../controllers/authController.js";
+import { login } from "../controllers/authController.js";
+import { logout } from "../controllers/authController.js";
+import { resetPasswoerd } from "../controllers/authController.js";
+import { forgotPassword } from "../controllers/authController.js";
 
-router.get("/google/callback",
-    passport.authenticate("google",{failureRedirect:"/auth/login"}),
-    async(req,res)=>{
-        await generateTokenandsetCookie(res,req,user._id)
-        res.redirect("/")
-    }
-)
+const router = Router();
 
 router.post("/signup",signup);
 router.post("/login",login);
-router.post("/forgotpassword",forgotPassword);
-router.post("/resetpassword",resetPassword);
-router.post("/verifyemail",verifyEmail)
-router.delete("/logout",logOut);
-export default router;
-
-
+router.post("/verifyEmail",verifyEmail);
+router.post("/forgotPassword",forgotPassword);
+router.post("/resetPassword",resetPasswoerd);
+router.post("/logout",logout);
