@@ -72,6 +72,10 @@ const userSchema = mongoose.Schema({
     updatedAt:{
         type:Date,
         dafault:Date.now()
+    },
+    googleId:{
+        type:String,
+        unique:true
     }
 
 })
