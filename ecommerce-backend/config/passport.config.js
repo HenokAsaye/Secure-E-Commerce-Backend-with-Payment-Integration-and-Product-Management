@@ -13,14 +13,20 @@ export const Passport = passport.use(
     },
     async(accessToken,refreshToken,profile,done)=>{
         let user =  await User.findOne({googleId:profile.id})
-        if(!user){
-            const user =  new User({            
-                username:profile.displayName,
-                email:profile.emails[0].value,
-                googleId:profile.id,
-                isVerfied:true
-            })
+        try {
+            if(!user){
+                const user =  new User({
+                    username:profiledisplayName,
+                    email:profile.emails[0].value,
+                    googleId:profile.id,
+                    isverified:true
+                })
+            }
+            done(null,user)
+        } catch (error) {
+            done(null,false)
         }
+
     }
     )
 )
