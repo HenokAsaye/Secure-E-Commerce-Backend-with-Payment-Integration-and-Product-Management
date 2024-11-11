@@ -17,6 +17,9 @@ export const createPaymentSession = async(order,items)=>{
                 unit_amount:item.price * 100,
             },
             quantity:item.quantity,
+            shiiping_address_collection:{
+                allowed_countries:['US','ET','BR']
+            }
         }));
 
         const session = await stripe.checkout.sessions.create({
@@ -45,7 +48,8 @@ export const savePayment = async(req,res)=>{
             paymentMethod,
             Amount:amount,
             transactionId,
-            status:'completed'
+            status:'completed',
+            shippingAddress:shiiping_address_collection,
         });
         await payment.save()
         await Order.findByIdAndUpdate(orderId,{status:'paid'});

@@ -18,6 +18,14 @@ const paymentSchema = mongoose.Schema({
         type:Number,
         required:true
     },
+    shippingAddress:{
+        country:String,
+        region:String,
+        city:String,
+        subcity:String,
+        streetnumber:Number,
+        postalcode:Number
+    },
     status:{
         type:String,
         enum:['pending','failed','completed'],

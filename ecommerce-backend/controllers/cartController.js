@@ -17,7 +17,7 @@ export const addToCart = async (req, res) => {
         }
 
         
-        const existingProduct = user.cart.find((item) => item.product.toString() === productId.toString());
+        const existingProduct = user.cart.find((item) => item.findProduct.toString() === productId.toString());
 
         if (existingProduct) {
             existingProduct.quantity += quantity;
@@ -50,7 +50,7 @@ export const updateCart = async (req, res) => {
         if (quantity > 0) {
             findProduct.quantity += quantity;
         } else if (findProduct.quantity >= Math.abs(quantity) && quantity < 0) {
-            findProduct.quantity += quantity; // Subtracting
+            findProduct.quantity += quantity; 
             if (findProduct.quantity === 0) {
                 user.cart = user.cart.filter(item => item.product.toString() !== productId.toString());
             }
@@ -75,7 +75,7 @@ export const getUserCart = async (req, res) => {
             log.info("here is the detail od your cart")
             return res.status(404).json({ message: "User not found!" });
         }
-        if (userId.toString() === req.user._id.toString()) {
+        if (userId.toString() === req.user._id.toString() || findUser.role === 'admin') {
             const userCart = findUser.cart;
             return res.status(200).json({ message: 'Here is the user cart', userCart });
         } else {
@@ -94,7 +94,7 @@ export const deleteUserCart = async (req, res) => {
         if (!findUser) {
             return res.status(404).json({ message: "User not found!" });
         }
-        if (userId.toString() === req.user._id.toString()) {
+        if (userId.toString() === req.user._id.toString() || findUser.role === 'admin') {
             findUser.cart = [];
             await findUser.save();
             return res.status(200).json({ message: "Cart deleted successfully!" });
