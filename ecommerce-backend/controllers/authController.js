@@ -8,46 +8,50 @@ import {logger} from "../config/logger.js";
 dotenv.config();
 
 
-export const signup = async(req,res)=>{
-    const {username,email,role,password} = req.body
+export const signUp = async(req,res)=>{
+    const {username,email,password,role} = req.body;
     try {
-        if(!username || !email){
-            logger.info(" you should fill all the required requests")
-            return res.status(400).json({message:"All fields are required!"})
+        if(!username || !email || !password){
+            logger.info("all fields must be filled")
+            return res.status(400).json({success:false,message:"fill all the required filled"})
         }
-        const existingUser = await User.findOne({email})
-        if(existingUser){
-            logger.info(`user with ${email} is not found!`)
-            return res.status(404).json({success:false,message:"user not found!"});
+        const findUser = await User.findOne({email})
+        if(findUser){
+            logger.info('account already created');
+            return res.status(400).json({success:false,message:"You have already have an Account!"})
         }
-        const hashed = await bcrypt.hash(password,10);
-        const verificationToken = Math.floor(100000 + Math.random() * 900000).toString()
+
+        const isadminRequest = role = 'admin';
+        const canRegisterAsAdmin = process.env.ADMIN_EMAIL;
+        if(isadminRequest && !canRegisterAsAdmin){
+            logger.warn('UnAuthrized to be Admin');
+            return res.status(403).json({success:false,message:"you are not Admin!"})
+        }
+
+        const hashPassword = await bcrypt.hash(password,10);
+        const verificationToken = Math.floor(100000 * Math.random() * 900000).toString();
         const newUser = new User({
             username:username,
             email:email,
-            password:hashed,
-            role:role,
-            verificationToken:verificationToken,
+            password:hashPassword,
+            role:isadminRequest && canRegisterAsAdmin ? 'admin':role,
+            verificationToken,
             verificationTokenExpiresAt:Date.now() + 24 * 60 * 60 * 1000
+
         })
+
         await newUser.save()
-        await generateTokenandsetCookie(res,newUser._id);
-        await sendWelcomeEmail(newUser.email)
-        logger.info("you have sucessfully created Account,Welcome")
-        return res.status(201).json({
-            sucess:true,
-            massage:"Account created Successfully!",
-            user:{
-                ...newUser._doc,
-                password:undefined
-            }
-        })
+
+        sendWelcomeEmail(newUser.email)
+        return res.status()
+    } catch (error) {
+        logger.error("Error while signing up");
+        res.status(500).json({success:false,message:"server-Error"})
+    }
+}
    
 
-    } catch (error) {
-        throw Error(" failed to create Account!",error)
-    }
-};
+ 
 
 
 export const verifyEmail = async(req,res)=>{

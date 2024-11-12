@@ -1,13 +1,12 @@
-
 import { createPaymentSession } from "./paymentController.js";
 import Order from "../models/order.js";
 import User from "../models/user.js";
+import { authorizeRoles } from "../middlewares/authMiddleware.js";
 
 
 export const createOrder = async(req,res)=>{
-
     try {
-        const {userId,items,totalAmount,shippingAddress,paymentMethod} = req.body;
+        const {userId,items,totalAmount,paymentMethod} = req.body;
         if(userId !== req.user._id.toString()){
             return res.status(400).json({sucess:false,message:"you are not Authorized for this service"})
         }
@@ -16,11 +15,11 @@ export const createOrder = async(req,res)=>{
             items:items,
             totalAmount:totalAmount,
             paymentStatus:'pending',
-            shippingAddress:shippingAddress,
-            paymentMethod:paymentMethod
+            paymentMethod:paymentMethod,
         });
         await order.save();
         const sessionUrl = await createPaymentSession(order,items);
+        order.shippingAddress = shippingAddress;
         return res.status(200).json({
             success:true,
             message:"Order Created SuccessFully.Complete the Payment for confirmation",
@@ -40,7 +39,7 @@ export const orderDetail = async (req, res) => {
 
     try {
         const user = await User.findById(userId);
-        if (!user || user.role !== "admin") {
+        if (!user || !authorizeRoles(user.role) ) {
             return res.status(403).json({ success: false, message: "Forbidden to view these details" });
         }
         const order = await Order.findById(orderId);
@@ -119,7 +118,7 @@ export const cancelOrder = async(req,res)=>{
         const order = await Order.findById(orderId)
         if(!user || userId.toString() !== req.user._id.toString()){
             return res.status(400).json({sucess:false,message:"User not found or you Are not Authorized"})
-        }else if(userId.toString() !== req.user._id.toString() && user.role !== "admin"){
+        }else if(userId.toString() !== req.user._id.toString() && !authorizeRoles(user.role)){
             return res.status(403).json({sucess:false,message:"Forbiden to do this"})
         }
         order.OrderStatus = 'failed';

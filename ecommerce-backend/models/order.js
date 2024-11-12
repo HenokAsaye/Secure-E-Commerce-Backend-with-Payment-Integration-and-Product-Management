@@ -19,14 +19,7 @@ const orderSchema = mongoose.Schema({
             required:true
         }
     }],
-    shippingAddress:{
-        country:String,
-        region:String,
-        city:String,
-        subcity:String,
-        streetnumber:Number,
-        postalcode:Number
-    },
+
     orderStatus:{
         type:String,
         enum:["processing",'failed','delivered'],
@@ -45,6 +38,11 @@ const orderSchema = mongoose.Schema({
     totalAmount:{
         type:Number,
         min:1
+    },
+    shippingAddress:{
+        type:Schema.Types.ObjectId,
+        ref:'Payment',
+        req:true
     },
     orderStatus:{
         type:String,
