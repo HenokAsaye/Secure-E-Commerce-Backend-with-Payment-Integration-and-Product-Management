@@ -49,11 +49,6 @@ export const signUp = async(req,res)=>{
         res.status(500).json({success:false,message:"server-Error"})
     }
 }
-   
-
- 
-
-
 export const verifyEmail = async(req,res)=>{
     const {code} = req.body
    try {
