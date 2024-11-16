@@ -11,7 +11,6 @@ export const createProduct = async (req, res) => {
             logger.info(`User not found with ID ${userId}`);
             return res.status(404).json({ success: false, message: "User not found" });
         }
-
         const newProduct = new Product({
             name,
             stock,
@@ -33,9 +32,9 @@ export const createProduct = async (req, res) => {
 };
 
 export const getProduct = async (req, res) => {
-    const { productId } = req.params;
+    const { Name } = req.query;
     try {
-        const product = await Product.findById(productId);
+        const product = await Product.find({Name:Name});
         if (!product) {
             logger.info(`Product with ID ${productId} not found`);
             return res.status(404).json({ success: false, message: "Product not found" });
@@ -65,6 +64,7 @@ export const editProduct = async (req, res) => {
         product.description = description || product.description;
         product.price = price || product.price;
         product.stock = stock || product.stock;
+        product.updateAt = updateAt || product.updateAt;
 
         await product.save();
         logger.info(`Product with ID ${productId} updated successfully`);

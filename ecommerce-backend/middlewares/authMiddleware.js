@@ -5,7 +5,7 @@ dotenv.config();
 
 
 export const authenticateToken = async(req,res,next)=>{
-    const authHeader = req.header['authorization'];
+    const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split('')[1]
     jwt.verify(token,process.env.JWT_KEY,async(err,decodeduser)=>{
         if(err){

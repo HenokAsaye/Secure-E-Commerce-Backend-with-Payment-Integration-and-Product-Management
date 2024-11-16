@@ -1,6 +1,7 @@
 import {logger} from "../config/logger.js";
 import Product from "../models/product.js";
 import User from "../models/user.js";
+import { authorizeRoles } from "../middlewares/authMiddleware.js";
 
 export const addToCart = async (req, res) => {
     const { productId, quantity } = req.body;
@@ -118,7 +119,7 @@ export const deleteProduct = async (req, res) => {
             log.info(`user with id ${userId} not found`)
             return res.status(404).json({ message: "User not found!" });
         }
-        if (userId.toString() === req.user._id.toString()) {
+        if (userId.toString() === req.user._id.toString() || authorizeRoles(findUser.role)) {
             findUser.cart = findUser.cart.filter(item => item.product.toString() !== productId.toString());
             await findUser.save();
             return res.status(200).json({ message: "Product removed from cart successfully!" });
