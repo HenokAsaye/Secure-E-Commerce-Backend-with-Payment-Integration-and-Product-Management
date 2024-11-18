@@ -39,12 +39,16 @@ export const updateCart = async (req, res) => {
     const { productId, quantity } = req.body;
 
     try {
+        if (quantity === 0) {
+            return res.status(400).json({ message: "Quantity cannot be zero!" });
+        }
         const user = await User.findById(req.user._id);
         if (!user) {
             return res.status(404).json({ message: "User not found!" });
         }
-
-        const findProduct = user.cart.find(item => item.product.toString() === productId.toString());
+        const findProduct = user.cart.find(
+            (item) => item.product.toString() === productId.toString()
+        );
         if (!findProduct) {
             return res.status(404).json({ message: "Product not found in cart!" });
         }
@@ -53,19 +57,24 @@ export const updateCart = async (req, res) => {
         } else if (findProduct.quantity >= Math.abs(quantity) && quantity < 0) {
             findProduct.quantity += quantity; 
             if (findProduct.quantity === 0) {
-                user.cart = user.cart.filter(item => item.product.toString() !== productId.toString());
+                user.cart = user.cart.filter(
+                    (item) => item.product.toString() !== productId.toString()
+                );
             }
         } else {
-            return res.status(400).json({ message: "Invalid quantity update!" });
+            return res
+                .status(400)
+                .json({ message: "Quantity exceeds the available amount in cart!" });
         }
 
         await user.save();
         return res.status(200).json({ message: "Cart updated successfully!" });
-
     } catch (error) {
-        return res.status(500).json({ message: "Unknown error, please try again!", error: error.stack });
+        console.error("Error updating cart:", error); // Log error
+        return res.status(500).json({ message: "An unexpected error occurred. Please try again later." });
     }
 };
+
 
 
 export const getUserCart = async (req, res) => {

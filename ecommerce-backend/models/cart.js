@@ -34,5 +34,5 @@ const cartSchema = mongoose.Schema({
     }
 });
 
-const Order = mongoose.model('Order',orderSchema);
-export default Order;
+const Cart = mongoose.model('Order',orderSchema);
+export default Cart;
