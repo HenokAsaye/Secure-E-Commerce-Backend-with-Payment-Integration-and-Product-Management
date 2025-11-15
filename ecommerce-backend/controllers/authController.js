@@ -8,7 +8,7 @@ import {logger} from "../config/logger.js";
 dotenv.config();
 
 
-export const signUp = async(req,res)=>{
+export const signup = async(req,res)=>{
     const {username,email,password,role} = req.body;
     try {
         if(!username || !email || !password){

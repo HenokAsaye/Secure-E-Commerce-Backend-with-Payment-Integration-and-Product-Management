@@ -1,87 +1,112 @@
-import {stripe} from "../config/stripe.js"
+import { stripe } from "../config/stripe.js";
 import dotenv from "dotenv";
 import Payment from "../models/payment.js";
 import Order from "../models/order.js";
-import {logger} from "../config/logger.js"
-dotenv.config()
+import { logger } from "../config/logger.js";
+dotenv.config();
 
-
-export const createPaymentSession = async(order,items)=>{
-    try{
-        const lineItems = items.map((item) =>({
-            price_data:{
-                currency:'usd',
-                product_data:{
-                    name:item.name
+export const createPaymentSession = async (order, items) => {
+    try {
+        const lineItems = items.map((item) => ({
+            price_data: {
+                currency: 'usd',
+                product_data: {
+                    name: item.product?.Name || 'Product',
+                    description: item.product?.description || '',
                 },
-                unit_amount:item.price * 100,
+                unit_amount: Math.round(item.price * 100), // Convert to cents
             },
-            quantity:item.quantity,
-            shiiping_address_collection:{
-                allowed_countries:['US','ET','BR']
-            }
+            quantity: item.quantity,
         }));
 
         const session = await stripe.checkout.sessions.create({
-            payment_method_types:['card','apple_pay','google_pay'],
-            line_items:lineItems,
-            mode:'payment',
-            success_url:`${process.env.CLIENT_URL}/success`,
-            cancel_url:`${process.env.CLIENT_URL}/cancel`,
-            metadata:{orderId:order._id}
-        })
+            payment_method_types: ['card'],
+            line_items: lineItems,
+            mode: 'payment',
+            success_url: `${process.env.CLIENT_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${process.env.CLIENT_URL}/cancel`,
+            metadata: { 
+                orderId: order._id.toString(),
+                userId: order.user.toString()
+            },
+            shipping_address_collection: {
+                allowed_countries: ['US', 'ET', 'BR']
+            }
+        });
 
-        return session.url
-    }catch(error){
-        console.log("error when creating checkout session",error)
-        throw new Error("Failed to create Payment Session")
+        logger.info(`Payment session created for order ${order._id}`);
+        return session.url;
+    } catch (error) {
+        logger.error("Error creating checkout session:", error);
+        throw new Error("Failed to create Payment Session");
     }
-}
+};
 
-
-export const savePayment = async(req,res)=>{
-    const {orderId,userId,amount,paymentMethod,transactionId} = req.body;
+export const savePayment = async (req, res) => {
+    const { orderId, userId, amount, paymentMethod, transactionId, shippingAddress } = req.body;
+    
     try {
         const payment = new Payment({
-            order:orderId,
-            user:userId,
+            order: orderId,
+            user: userId,
             paymentMethod,
-            Amount:amount,
+            Amount: amount,
             transactionId,
-            status:'completed',
-            shippingAddress:shiiping_address_collection,
+            status: 'completed',
+            shippingAddress,
         });
-        await payment.save()
-        await Order.findByIdAndUpdate(orderId,{status:'paid'});
-        res.status(200).json({sucess:true,message:"Payment recorded successfully",payment});
+        
+        await payment.save();
+        await Order.findByIdAndUpdate(orderId, { paymentStatus: 'paid' });
+        
+        logger.info(`Payment saved for order ${orderId}`);
+        res.status(200).json({ 
+            success: true, 
+            message: "Payment recorded successfully", 
+            payment 
+        });
     } catch (error) {
-        console.error("Error saving Payment",error);
-        res.status(500).json({sucess:false,message:"Failed to save payment"});
+        logger.error("Error saving payment:", error);
+        res.status(500).json({ success: false, message: "Failed to save payment" });
     }
-    
-}
+};
 
-export const handleWebhooks = async(req,res)=>{
-    const sig = req.header['stripe-signature']
-    const payload = req.body
+export const handleWebhooks = async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    const payload = req.body;
+    
     try {
-        const event = stripe.webhook.constructEvent(sig,payload,process.env.WEB_HOOK_SECRET);
-        if(event.type === 'checkout session completed'){
-            const session  = event.data.object
-            const orderId = event.metadata.orderId
-            await Order.findByIdAndUpdate(orderId,{paymentStatus:'paid'})
+        const event = stripe.webhooks.constructEvent(
+            payload,
+            sig,
+            process.env.WEBHOOK_SECRET
+        );
+
+        if (event.type === 'checkout.session.completed') {
+            const session = event.data.object;
+            const orderId = session.metadata.orderId;
+
+            await Order.findByIdAndUpdate(orderId, { 
+                paymentStatus: 'paid',
+                orderStatus: 'processing'
+            });
+
             const payment = new Payment({
-                order:orderId,
-                status:'completed',
-                transactionId:session.payment_intent,
-                Amount:session.amount_total / 100
-            })
-            await payment.save()
+                order: orderId,
+                user: session.metadata.userId,
+                status: 'completed',
+                transactionId: session.payment_intent,
+                Amount: session.amount_total / 100,
+                paymentMethod: 'stripe'
+            });
+            
+            await payment.save();
+            logger.info(`Payment completed for order ${orderId}`);
         }
-        logger.info('payment process is done!')
-        return res.status(200).json({sucess:true})
+
+        return res.status(200).json({ success: true, received: true });
     } catch (error) {
-        logger.error("Webhook error",error.stack);
-        return res.status(500).json({sucess:false,message:"server-error"})
+        logger.error("Webhook error:", error);
+        return res.status(400).json({ success: false, message: error.message });
     }
-}
+};
