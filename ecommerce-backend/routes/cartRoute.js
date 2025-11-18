@@ -10,6 +10,18 @@ import {
   authorizeRoles,
 } from "../middlewares/authMiddleware.js";
 import { Router } from "express";
+import {
+  addToCart,
+  updateCart,
+  deleteProduct,
+  deleteUserCart,
+  getUserCart,
+} from "../controllers/cartController.js";
+import {
+  authenticateToken,
+  authorizeRoles,
+} from "../middlewares/authMiddleware.js";
+import { Router } from "express";
 const router = Router();
 
 router.post("/addtocart", authenticateToken, addToCart);

@@ -10,8 +10,32 @@ import {
 } from "../MailTrap/email.js";
 import { generateTokenandsetCookie } from "../utils/jwt.js";
 import { logger } from "../config/logger.js";
+import {
+  sendPasswordResetEmail,
+  sendVerificationEmail,
+  PasswordResetSuccessEmail,
+  sendWelcomeEmail,
+} from "../MailTrap/email.js";
+import { generateTokenandsetCookie } from "../utils/jwt.js";
+import { logger } from "../config/logger.js";
 dotenv.config();
 
+export const signup = async (req, res) => {
+  const { username, email, password, role } = req.body;
+  try {
+    if (!username || !email || !password) {
+      logger.info("all fields must be filled");
+      return res
+        .status(400)
+        .json({ success: false, message: "fill all the required filled" });
+    }
+    const findUser = await User.findOne({ email });
+    if (findUser) {
+      logger.info("account already created");
+      return res
+        .status(400)
+        .json({ success: false, message: "You have already have an Account!" });
+    }
 export const signup = async (req, res) => {
   const { username, email, password, role } = req.body;
   try {
@@ -86,6 +110,11 @@ export const verifyEmail = async (req, res) => {
     await user.save();
     await sendVerificationEmail(user.email, user.username);
     logger.info(`user with email:${email} is verfied successfully`);
+    (user.isverified = true), (user.verificationToken = undefined);
+    user.verificationTokenExpiresAt = undefined;
+    await user.save();
+    await sendVerificationEmail(user.email, user.username);
+    logger.info(`user with email:${email} is verfied successfully`);
     res.status(200).json({
       success: true,
       message: "Email verified successfully",
@@ -93,7 +122,20 @@ export const verifyEmail = async (req, res) => {
         ...user._doc,
         password: undefined,
       },
+      success: true,
+      message: "Email verified successfully",
+      user: {
+        ...user._doc,
+        password: undefined,
+      },
     });
+  } catch (error) {
+    logger.error("failed to verify the email due to unkown server error", {
+      error: error.stack,
+    });
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
   } catch (error) {
     logger.error("failed to verify the email due to unkown server error", {
       error: error.stack,
@@ -140,7 +182,25 @@ export const logOut = async (req, res) => {
     .status(200)
     .json({ sucess: true, message: "you have successfully logged out!" });
 };
+export const logOut = async (req, res) => {
+  res.clearCookie("token");
+  return res
+    .status(200)
+    .json({ sucess: true, message: "you have successfully logged out!" });
+};
 
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      logger.info(`user not found with email${email}`);
+      return res.status(404).json({ sucess: true, message: "user not found!" });
+    }
+    const resetToken = crypto.randomBytes(20).toString("hex");
+    const resetTokenExpiresAt = Date.now() + 1 * 60 * 60 * 1000;
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpiresAt = resetTokenExpiresAt;
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
   try {
