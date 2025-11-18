@@ -1,75 +1,77 @@
 import mongoose, { Schema } from "mongoose";
 
-const userSchema = new Schema({
+const userSchema = new Schema(
+  {
     username: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
     },
     email: {
-        type: String,
-        required: true,
-        unique: true,
+      type: String,
+      required: true,
+      unique: true,
     },
     password: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
     role: {
-        type: String,
-        enum: [ 'admin','customer'],
-        default: 'customer'
+      type: String,
+      enum: ["admin", "customer"],
+      default: "customer",
     },
     address: {
-        country: String,
-        region: String,
-        city: String,
-        subcity: String,
-        streetnumber: Number,
-        postalcode: Number
+      country: String,
+      region: String,
+      city: String,
+      subcity: String,
+      streetnumber: Number,
+      postalcode: Number,
     },
-    phone: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    cart: [{
+
+    cart: [
+      {
         productId: {
-            type: Schema.Types.ObjectId,
-            ref: 'Product'
+          type: Schema.Types.ObjectId,
+          ref: "Product",
         },
         quantity: {
-            type: Number,
-            default: 1
-        }
-    }],
+          type: Number,
+          default: 1,
+        },
+      },
+    ],
     order: {
-        type: Schema.Types.ObjectId,
-        ref: 'Order'
+      type: Schema.Types.ObjectId,
+      ref: "Order",
     },
     verificationToken: {
-        type: String
+      type: String,
     },
     verificationTokenExpiresAt: {
-        type: Date
+      type: Date,
     },
     resetPasswordToken: {
-        type: String
+      type: String,
     },
     isverified: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
     lastlogin: {
-        type: Date
+      type: Date,
     },
     resetPasswordExpiresAt: {
-        type: Date
+      type: Date,
     },
     googleId: {
-        type: String,
-        unique: true
-    }
-}, { timestamps: true }); 
+      type: String,
+      unique: false,
+      sparse: true,
+    },
+  },
+  { timestamps: true }
+);
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model("User", userSchema);
 export default User;
